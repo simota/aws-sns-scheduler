@@ -2,15 +2,39 @@ import os
 import sys
 import time
 import falcon
-import shelve
 import uuid
 import signal
-import pickle
+from sqlalchemy import create_engine, MetaData, Column, Integer, String, Text, DATETIME
+from sqlalchemy.orm import sessionmaker, relationship, scoped_session
+from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 from setproctitle import setproctitle
 from apscheduler.scheduler import Scheduler
 from apscheduler import events
-from apscheduler.jobstores.shelve_store import ShelveJobStore
+from apscheduler.jobstores.sqlalchemy_store import SQLAlchemyJobStore
 
+## database
+engine = create_engine('sqlite:///notfication.db', echo=True)
+Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+metadata = MetaData(engine)
+Base = declarative_base()
+
+class Notfication(Base):
+    __tablename__ = 'notfications'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    message = Column(Text, nullable=False)
+    status = Column(Integer, nullable=False)
+    created_at = Column(DATETIME, default=datetime.now, nullable=False)
+    updated_at = Column(DATETIME, default=datetime.now, nullable=False)
+
+    def __init__(self, message):
+        self.message = message
+        self.status = 0
+        now = datetime.now()
+        self.created_at = now
+        self.updated_at = now
+
+Base.metadata.create_all(engine)
 
 ## api server
 class NotficationsResource:
@@ -21,8 +45,8 @@ class NotficationsResource:
 
     def on_get(self, req, resp):
         notfication_id = self.store.add({})
-        self.scheduler.add_job(my_job, '2017-03-15 14:15:30', args=[notfication_id])
-        resp.body = 'get'
+        self.scheduler.add_job(notfication_job, '2017-03-15 18:06:00', args=[notfication_id])
+        resp.body = str(notfication_id)
 
     def on_post(self, req, resp):
         pass
@@ -37,25 +61,26 @@ class NotficationsResource:
 ## data store
 class NotficationStore:
 
-    def __init__(self, filename='notfication.db'):
-        curdir = os.path.dirname(__file__)
-        shelve_path = os.path.join(curdir, filename)
-        self.db = shelve.open(shelve_path, 'c', pickle.HIGHEST_PROTOCOL)
+    def __init__(self, session):
+        self.session = session
 
     def add(self, notfication):
-        notfication_id = uuid.uuid4()
-        self.db[notfication_id] = notfication
+        notfication = Notfication("test")
+        self.session.add(notfication)
+        self.session.commit()
+        return notfication.id
 
     def remove(self, notfication_id):
-        del self.db[notfication_id]
+        notfication = self.find(notfication_id)
+        if notfication is not None:
+            self.session.delete(notfication)
+            self.session.commit
 
     def close(self):
-        self.db.close()
+        self.session.close
 
     def find(self, notfication_id):
-        if self.db.has_key(notfication_id):
-            return self.db[notfication_id]
-        return None
+        return self.session.query(Notfication).filter_by(id=notfication_id).first()
 
 
 ## scheduler
@@ -73,11 +98,9 @@ class MyScheduler:
         '256': 'EVENT_JOB_MISSED'
         }
 
-    def __init__(self, filename='scheduler.db'):
-        curdir = os.path.dirname(__file__)
-        store_path = os.path.join(curdir, filename)
+    def __init__(self, db_path='sqlite:///scheduler.db'):
         self.scheduler = Scheduler()
-        self.scheduler.add_jobstore(ShelveJobStore(store_path), 'file')
+        self.scheduler.add_jobstore(SQLAlchemyJobStore(url=db_path), 'sqlite')
         self.scheduler.add_listener(self.event_listener, events.EVENT_ALL)
 
     def start(self):
@@ -100,16 +123,16 @@ class MyScheduler:
         self.scheduler.print_jobs()
 
 
-def my_job(text):
-    print text
-
-
 #    job = sched.add_interval_job(my_job, minutes=1, args=['hello'])
 #    job = sched.add_date_job(job_function, '2013-08-05 23:47:05', ['hello'])
 
 setproctitle('aws-sns-scheduler')
-store = NotficationStore()
+store = NotficationStore(Session())
 scheduler = MyScheduler()
+
+def notfication_job(notfication_id):
+    notfication = store.find(notfication_id)
+    print notfication.message
 
 def receive_signal(signum, stack):
     store.close()
