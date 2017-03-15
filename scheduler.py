@@ -26,29 +26,15 @@ class Notfication(Base):
     __tablename__ = 'notfications'
     id = Column(Integer, primary_key=True, autoincrement=True)
     message = Column(Text, nullable=False)
-    status = Column(Integer, nullable=False)
+    delivery_status = Column(Integer, nullable=False)
     scheduled_at = Column(DATETIME, nullable=False)
     created_at = Column(DATETIME, default=datetime.now, nullable=False)
     updated_at = Column(DATETIME, default=datetime.now, nullable=False)
 
-    def __init__(self, message, schedule):
-        self.message = message
-        self.status = 0
-        now = datetime.now()
-        self.scheduled_at = schedule
-        self.created_at = now
-        self.updated_at = now
-
-    def mark_completed(self):
-        self.status = 1
-
-    def mark_error(self):
-        self.status = 2
-
     def to_dict(self):
         return {
             'id': self.id,
-            'status': self.status,
+            'delivery_status': self.delivery_status,
             'message': self.message,
             'scheduled_at': self.scheduled_at.strftime('%Y-%m-%d %H:%M:%S')
             }
@@ -88,7 +74,10 @@ class NotficationStore:
         self.session = session
 
     def add(self, message, schedule):
-        notfication = Notfication(message, schedule)
+        notfication = Notfication()
+        notfication.message = message
+        notfication.delivery_status = 0
+        notfication.scheduled_at = schedule
         self.session.add(notfication)
         self.session.commit()
         return notfication
@@ -97,14 +86,14 @@ class NotficationStore:
         notfication = self.find(notfication_id)
         if notfication is not None:
             self.session.delete(notfication)
-            self.session.commit
+            self.session.commit()
 
-    def update(self, notfication):
-        self.session.add(notfication)
-        self.session.commit
+    def update(self, notfication_id, params):
+        self.session.query(Notfication).filter_by(id=notfication_id).update(params)
+        self.session.commit()
 
     def close(self):
-        self.session.close
+        self.session.close()
 
     def find(self, notfication_id):
         return self.session.query(Notfication).filter_by(id=notfication_id).first()
@@ -165,8 +154,7 @@ def scheduler_task(notfication_id):
         s = NotficationStore(Session())
         notfication = s.find(notfication_id)
         print notfication.message
-        notfication.mark_completed()
-        s.update(notfication)
+        s.update(notfication_id, {'delivery_status': 1})
         s.close()
     except Exception as e:
         print '=== error ==='
