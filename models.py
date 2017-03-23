@@ -3,10 +3,12 @@ from sqlalchemy import create_engine, MetaData, Column, Integer, String, Text, D
 from sqlalchemy.orm import sessionmaker, relationship, scoped_session
 from sqlalchemy.ext.declarative import declarative_base
 
-engine = create_engine('sqlite:///notfication.db', echo=True)
-Session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+engine = create_engine('sqlite:///notfication.db', echo=False)
+Session = scoped_session(sessionmaker(
+    autocommit=False, autoflush=False, bind=engine))
 metadata = MetaData(engine)
 Base = declarative_base()
+
 
 class Notfication(Base):
     __tablename__ = 'notfications'
@@ -23,7 +25,8 @@ class Notfication(Base):
             'delivery_status': self.delivery_status,
             'message': self.message,
             'scheduled_at': self.scheduled_at.strftime('%Y-%m-%d %H:%M:%S')
-            }
+        }
+
 
 class NotficationStore:
 
@@ -46,7 +49,8 @@ class NotficationStore:
             self.session.commit()
 
     def update(self, notfication_id, params):
-        self.session.query(Notfication).filter_by(id=notfication_id).update(params)
+        self.session.query(Notfication).filter_by(
+            id=notfication_id).update(params)
         self.session.commit()
 
     def close(self):
@@ -57,6 +61,7 @@ class NotficationStore:
 
     def all(self):
         return self.session.query(Notfication).all()
+
 
 Base.metadata.create_all(engine)
 

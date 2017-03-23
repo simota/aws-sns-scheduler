@@ -2,6 +2,7 @@ from apscheduler.scheduler import Scheduler
 from apscheduler import events
 from apscheduler.jobstores.sqlalchemy_store import SQLAlchemyJobStore
 
+
 class MyScheduler:
 
     EVENTS = {
@@ -14,12 +15,11 @@ class MyScheduler:
         '64': 'EVENT_JOB_EXECUTED',
         '128': 'EVENT_JOB_ERROR',
         '256': 'EVENT_JOB_MISSED'
-        }
+    }
 
     def __init__(self, db_path='sqlite:///scheduler.db'):
         self.scheduler = Scheduler()
         self.scheduler.add_jobstore(SQLAlchemyJobStore(url=db_path), 'default')
-        self.scheduler.add_listener(self.event_listener, events.EVENT_ALL)
 
     def start(self):
         self.scheduler.start()
@@ -32,18 +32,15 @@ class MyScheduler:
         return self.scheduler.get_jobs()
 
     def remove_job(self, notfication_id):
-        for job in self.jobs():
-            if job.args[0] == notfication_id:
+        jobs = self.jobs()
+        for job in jobs:
+            if job.args[0] == int(notfication_id):
                 self.scheduler.unschedule_job(job)
                 return True
         return False
 
     def shutdown(self):
         self.scheduler.shutdown()
-
-    def event_listener(self, event):
-        print self.EVENTS[str(event.code)]
-        self.scheduler.print_jobs()
 
 
 def create_scheduler():
