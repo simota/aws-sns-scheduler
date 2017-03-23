@@ -70,10 +70,13 @@ def publish_targets():
 
 
 def _publish(payload, endpoint):
-    sns_client.publish(
-        message=payload,
-        message_structure='json',
-        target_arn=endpoint['EndpointArn'])
+    try:
+        sns_client.publish(
+            message=payload,
+            message_structure='json',
+            target_arn=endpoint['EndpointArn'])
+    except:
+        pass
 
 def publish(message):
     payload = _create_payload(message)
