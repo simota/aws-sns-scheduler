@@ -5,6 +5,9 @@ import publisher
 def notfication_task(notfication_id):
     store = models.create_store()
     notfication = store.find(notfication_id)
+    if notfication.delivered():
+        store.close()
+        return
     try:
         print 'start notfication task:' + str(notfication_id)
         # publisher.publish(notfication.message)

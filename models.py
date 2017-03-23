@@ -27,6 +27,9 @@ class Notfication(Base):
             'scheduled_at': self.scheduled_at.strftime('%Y-%m-%d %H:%M:%S')
         }
 
+    def delivered(self):
+        return delivery_status == 1
+
 
 class NotficationStore:
 
@@ -57,13 +60,20 @@ class NotficationStore:
         self.session.close()
 
     def find(self, notfication_id):
-        return self.session.query(Notfication).filter_by(id=notfication_id).first()
+        return self.session.query(Notfication) \
+            .filter_by(id=notfication_id) \
+            .first()
 
     def filter_by(self, params):
-        return self.session.query(Notfication).filter_by(**params).all()
+        return self.session.query(Notfication) \
+            .filter_by(**params) \
+            .order_by("scheduled_at desc") \
+            .all()
 
     def all(self):
-        return self.session.query(Notfication).all()
+        return self.session.query(Notfication) \
+            .order_by("scheduled_at desc") \
+            .all()
 
 
 Base.metadata.create_all(engine)

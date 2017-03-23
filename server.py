@@ -36,7 +36,29 @@ class NotficationsResource:
         resp.body = json.dumps(notfication.to_dict())
 
     def on_put(self, req, resp, notfication_id):
-        pass
+        notfication = self.store.find(notfication_id)
+        if notfication is None:
+            resp.status = falcon.HTTP_404
+            return
+
+        error = self.validate_notfication(req.params)
+        if error is not None:
+            resp.status = falcon.HTTP_400
+            resp.body = json.dumps(error)
+            return
+
+        self.scheduler.remove_job(notfication_id)
+
+        message = req.params['message']
+        schedule = self.convert_datetime(req.params['schedule'])
+        self.store.update(notfication_id, {
+            'message': message,
+            'scheduled_at': schedule})
+        self.scheduler.add_job(tasks.notfication_task,
+                               schedule, args=[notfication_id])
+
+        notfication = self.store.find(notfication_id)
+        resp.body = json.dumps(notfication.to_dict())
 
     def on_delete(self, req, resp, notfication_id):
         if self.scheduler.remove_job(notfication_id):

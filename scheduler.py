@@ -34,7 +34,7 @@ class MyScheduler:
     def remove_job(self, notfication_id):
         jobs = self.jobs()
         for job in jobs:
-            if job.args[0] == int(notfication_id):
+            if int(job.args[0]) == int(notfication_id):
                 self.scheduler.unschedule_job(job)
                 return True
         return False
