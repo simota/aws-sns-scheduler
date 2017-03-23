@@ -28,7 +28,7 @@ class Notfication(Base):
         }
 
     def delivered(self):
-        return delivery_status == 1
+        return self.delivery_status == 1
 
 
 class NotficationStore:

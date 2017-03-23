@@ -33,6 +33,8 @@ class NotficationsResource:
         notfication = self.store.add(message, schedule)
         self.scheduler.add_job(tasks.notfication_task,
                                schedule, args=[notfication.id])
+
+        resp.status = falcon.HTTP_201
         resp.body = json.dumps(notfication.to_dict())
 
     def on_put(self, req, resp, notfication_id):
@@ -61,8 +63,15 @@ class NotficationsResource:
         resp.body = json.dumps(notfication.to_dict())
 
     def on_delete(self, req, resp, notfication_id):
+        notfication = self.store.find(notfication_id)
+        if notfication is None:
+            resp.status = falcon.HTTP_404
+            return
+
         if self.scheduler.remove_job(notfication_id):
             self.store.remove(notfication_id)
+
+        resp.status = falcon.HTTP_204
         resp.body = json.dumps({'notfication_id': notfication_id})
 
     def convert_datetime(self, date_string):
@@ -108,5 +117,5 @@ def run(scheduler, store):
     api.add_route('/notfications/{notfication_id}',
                   NotficationsResource(scheduler, store))
     api.add_route('/targets', TargetsResource())
-    httpd = make_server('', 9999, api)
+    httpd = make_server('0.0.0.0', 8080, api)
     httpd.serve_forever()

@@ -1,9 +1,12 @@
 import signal
 from setproctitle import setproctitle
+import logging
+logging.basicConfig()
 
 import scheduler
 import server
 import models
+
 
 def receive_signal(signum, stack):
     store.close()
