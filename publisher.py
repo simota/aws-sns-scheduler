@@ -61,6 +61,13 @@ def _get_endpoints():
     return endpoints
 
 
+def publish_targets():
+    targets = {}
+    targets['ios'] = len(_get_application_endpoints(IOS_ARM, []))
+    targets['android'] = len(_get_application_endpoints(ANDROID_ARM, []))
+    return targets
+
+
 def publish(message):
     payload = _create_payload(message)
     endpoints = _get_endpoints()

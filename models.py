@@ -59,6 +59,9 @@ class NotficationStore:
     def find(self, notfication_id):
         return self.session.query(Notfication).filter_by(id=notfication_id).first()
 
+    def filter_by(self, params):
+        return self.session.query(Notfication).filter_by(**params).all()
+
     def all(self):
         return self.session.query(Notfication).all()
 
