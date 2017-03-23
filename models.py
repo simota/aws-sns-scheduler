@@ -16,8 +16,13 @@ class Notfication(Base):
     message = Column(Text, nullable=False)
     delivery_status = Column(Integer, nullable=False)
     scheduled_at = Column(DATETIME, nullable=False)
-    created_at = Column(DATETIME, default=datetime.now, nullable=False)
-    updated_at = Column(DATETIME, default=datetime.now, nullable=False)
+    created_at = Column(DATETIME,
+                            default=datetime.now,
+                            nullable=False)
+    updated_at = Column(DATETIME,
+                            default=datetime.now,
+                            onupdate=datetime.now,
+                            nullable=False)
 
     def to_dict(self):
         return {

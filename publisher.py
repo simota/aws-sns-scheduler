@@ -2,6 +2,7 @@
 from pprint import pprint
 import boto.sns
 import json
+import concurrent.futures
 
 
 ANDROID_ARM = 'arn:aws:sns:ap-northeast-1:345493687167:app/GCM/daice-android'
@@ -68,9 +69,17 @@ def publish_targets():
     return targets
 
 
+def _publish(payload, endpoint):
+    sns_client.publish(
+        message=payload,
+        message_structure='json',
+        target_arn=endpoint['EndpointArn'])
+
 def publish(message):
     payload = _create_payload(message)
     endpoints = _get_endpoints()
-    for x in endpoints:
-        sns_client.publish(
-            message=payload, message_structure='json', target_arn=x['EndpointArn'])
+    executor = concurrent.futures.ProcessPoolExecutor(max_workers=7)
+    futures = [executor.submit(publish, payload, endpoint) for endpoint in endpoints]
+    for future in concurrent.futures.as_completed(futures):
+        pass
+    executor.shutdown()
