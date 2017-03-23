@@ -1,0 +1,154 @@
+swagger: '2.0'
+info:
+  title: 'Push通知スケジューラーAPI'
+  description: ''
+  version: "1.0.0"
+host: localhost:8080
+schemes:
+  - http
+basePath: /
+produces:
+  - application/json
+paths:
+  /notfications:
+    get:
+      summary: '通知リスト取得API'
+      description: '登録されている通知リストの一覧を返す'
+      parameters:
+        - name: delivery_status
+          in: query
+          description: '通知ステータス 0 => 未配信, 1 => 配信済, 2 => 配信エラー'
+          required: false
+          type: integer
+      tags:
+        - Notfications
+      responses:
+        200:
+          description: 通知一覧
+          schema:
+            type: object
+            properties:
+              notfications:
+                type: array
+                items:
+                  $ref: '#/definitions/Notfication'
+    post:
+      summary: '通知登録API'
+      description: '通知を登録、スケジューリングする'
+      parameters:
+        - name: message
+          in: formData
+          description: '通知するメッセージ、最大70文字'
+          required: true
+          type: string
+        - name: schedule
+          in: formData
+          description: '通知する日時, now指定で現在時間'
+          required: true
+          type: string
+          format: php:'Y-m-d H:i:s'
+      tags:
+        - Notfications
+      responses:
+        201:
+          description: '登録された通知スケジュール'
+          schema:
+            $ref: '#/definitions/Notfication'
+        400:
+          description: 検証エラー
+          schema:
+            $ref: '#/definitions/Error'
+  /notfications/{notfication_id}:
+    put:
+      summary: 通知更新API
+      description: |
+        登録済の通知スケジュールを更新する。
+        配信済の場合はスケジューリングされない。
+      parameters:
+        - name: notfication_id
+          in: path
+          description: 通知ID
+          required: true
+          type: integer
+        - name: message
+          in: formData
+          description: '通知するメッセージ、最大70文字'
+          required: true
+          type: string
+        - name: schedule
+          in: formData
+          description: '通知する日時, now指定で現在時間'
+          required: true
+          type: string
+          format: php:'Y-m-d H:i:s'
+      tags:
+        - Notfications
+      responses:
+        200:
+          description: 更新後の通知データ
+          schema:
+            $ref: '#/definitions/Notfication'
+        404:
+          description: 対象が見つからない
+        400:
+          description: 検証エラー
+          schema:
+            $ref: '#/definitions/Error'
+    delete:
+      summary: 通知削除API
+      description: 登録済の通知スケジュールを削除する。
+      parameters:
+        - name: notfication_id
+          in: path
+          description: 通知ID
+          required: true
+          type: integer
+      tags:
+        - Notfications
+      responses:
+        204:
+          description: 正常削除
+        404:
+          description: 対象が見つからない
+  /targets:
+    get:
+      summary: 通知対象数取得API
+      description: 通知対象の数を取得する
+      tags:
+        - Targets
+      responses:
+        200:
+          description: History information for the given user
+          schema:
+            $ref: '#/definitions/Target'
+definitions:
+  Notfication:
+    type: object
+    properties:
+      id:
+        type: string
+        description: 通知のID
+      message:
+        type: string
+        description: 通知内容
+      scheduled_at:
+        type: string
+        description: 通知スケジュール
+      delivery_status:
+        type: string
+        description: 通知ステータス 0 => 未配信, 1 => 配信済, 2 => 配信エラー
+  Target:
+    type: object
+    properties:
+      ios:
+        type: integer
+        description: iosのトークン登録数
+      android:
+        type: integer
+        description: androidのトークン登録数
+  Error:
+    type: object
+    properties:
+      error_message:
+        type: string
+

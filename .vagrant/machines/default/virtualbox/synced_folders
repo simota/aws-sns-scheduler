@@ -1,0 +1,1 @@
+{"rsync":{"/usr/src/app":{"type":"rsync","sync__exclude":".git/","guestpath":"/usr/src/app","hostpath":"/Users/simota/repos/github.com/aws-sns-scheduler","disabled":false,"__vagrantfile":true,"owner":"vagrant","group":"vagrant"}}}
