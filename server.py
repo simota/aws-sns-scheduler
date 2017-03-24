@@ -68,8 +68,8 @@ class NotficationsResource:
             resp.status = falcon.HTTP_404
             return
 
-        if self.scheduler.remove_job(notfication_id):
-            self.store.remove(notfication_id)
+        self.scheduler.remove_job(notfication_id)
+        self.store.remove(notfication_id)
 
         resp.status = falcon.HTTP_204
         resp.body = json.dumps({'notfication_id': notfication_id})
