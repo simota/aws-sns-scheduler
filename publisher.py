@@ -1,13 +1,13 @@
-# -*- coding: utf-8 -*-
+# -*- Coding: utf-8 -*-
 import sys
 import boto.sns
 import json
 import concurrent.futures
 
 
-ANDROID_ARM = 'arn:aws:sns:ap-northeast-1:345493687167:app/GCM/daice-android'
-IOS_ARM = 'arn:aws:sns:ap-northeast-1:345493687167:app/APNS/daice-ios'
-
+ANDROID_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/GCM/daice-android'
+IOS_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/APNS/daice-ios'
+TOPIC_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:All'
 
 def create_client():
     AWS_REGION = 'ap-northeast-1'
@@ -40,6 +40,7 @@ def _create_payload(message):
     payload = {}
     apns = {'aps': {'alert': message, 'badge': 1}}
     gcm = {'data': {'message': message}}
+    payload['default'] = message
     payload['APNS'] = json.dumps(apns)
     payload['GCM'] = json.dumps(gcm)
     return json.dumps(payload)
@@ -57,15 +58,15 @@ def _get_application_endpoints(application_arn, endpoints, next_token=None):
 
 def _get_endpoints():
     endpoints = []
-    endpoints = endpoints + _get_application_endpoints(IOS_ARM, [])
-    endpoints = endpoints + _get_application_endpoints(ANDROID_ARM, [])
+    endpoints = endpoints + _get_application_endpoints(IOS_ARN, [])
+    endpoints = endpoints + _get_application_endpoints(ANDROID_ARN, [])
     return endpoints
 
 
 def publish_targets():
     targets = {}
-    targets['ios'] = len(_get_application_endpoints(IOS_ARM, []))
-    targets['android'] = len(_get_application_endpoints(ANDROID_ARM, []))
+    targets['ios'] = len(_get_application_endpoints(IOS_ARN, []))
+    targets['android'] = len(_get_application_endpoints(ANDROID_ARN, []))
     return targets
 
 
@@ -79,6 +80,13 @@ def _publish(payload, endpoint):
     except:
         print sys.exc_info()
         return 'x'
+
+def publish_topic(message):
+    payload = _create_payload(message)
+    sns_client.publish(
+        message=payload,
+        message_structure='json',
+        target_arn=TOPIC_ARN)
 
 
 def publish(message):
