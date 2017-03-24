@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
+import sys
 import boto.sns
 import json
 import concurrent.futures
@@ -75,14 +75,18 @@ def _publish(payload, endpoint):
             message=payload,
             message_structure='json',
             target_arn=endpoint['EndpointArn'])
+        return '.'
     except:
-        pass
+        print sys.exc_info()
+        return 'x'
+
 
 def publish(message):
     payload = _create_payload(message)
     endpoints = _get_endpoints()
     executor = concurrent.futures.ProcessPoolExecutor(max_workers=7)
-    futures = [executor.submit(publish, payload, endpoint) for endpoint in endpoints]
+    futures = [executor.submit(_publish, payload, endpoint)
+               for endpoint in endpoints]
     for future in concurrent.futures.as_completed(futures):
-        pass
+        print future.result(),
     executor.shutdown()

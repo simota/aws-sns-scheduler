@@ -1,3 +1,4 @@
+import sys
 import models
 import publisher
 
@@ -13,11 +14,8 @@ def notfication_task(notfication_id):
         publisher.publish(notfication.message)
         store.update(notfication_id, {'delivery_status': 1})
         print 'end notfication task:' + str(notfication_id)
-    except Exception as e:
+    except:
         store.update(notfication_id, {'delivery_status': 2})
-        print '=== error ==='
-        print 'type:' + str(type(e))
-        print 'args:' + str(e.args)
-        print 'message:' + e.message
+        print sys.exc_info()
     finally:
         store.close()
