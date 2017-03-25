@@ -11,7 +11,7 @@ def notfication_task(notfication_id):
         return
     try:
         print 'start notfication task:' + str(notfication_id)
-        publisher.publish_topic(notfication.message)
+        publisher.publish_to_topic(notfication.message)
         store.update(notfication_id, {'delivery_status': 1})
         print 'end notfication task:' + str(notfication_id)
     except:

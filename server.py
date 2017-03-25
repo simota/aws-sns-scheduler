@@ -77,7 +77,7 @@ class NotficationsResource:
     def convert_datetime(self, date_string):
         if date_string == 'now':
             today = datetime.today()
-            return today + timedelta(seconds=30)
+            return today + timedelta(seconds=15)
         return datetime.strptime(
             date_string, '%Y-%m-%d %H:%M:%S')
 

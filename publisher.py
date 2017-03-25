@@ -3,11 +3,18 @@ import sys
 import boto.sns
 import json
 import concurrent.futures
+from pprint import pprint
 
 
 ANDROID_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/GCM/daice-android'
 IOS_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/APNS/daice-ios'
-TOPIC_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:All'
+TOPIC_ARN_LIST = [
+    'arn:aws:sns:ap-northeast-1:345493687167:All',
+    'arn:aws:sns:ap-northeast-1:345493687167:All2',
+    'arn:aws:sns:ap-northeast-1:345493687167:All3',
+    'arn:aws:sns:ap-northeast-1:345493687167:All4',
+    'arn:aws:sns:ap-northeast-1:345493687167:All5',
+    ]
 
 def create_client():
     AWS_REGION = 'ap-northeast-1'
@@ -81,12 +88,14 @@ def _publish(payload, endpoint):
         print sys.exc_info()
         return 'x'
 
-def publish_topic(message):
+def publish_to_topic(message):
     payload = _create_payload(message)
-    sns_client.publish(
-        message=payload,
-        message_structure='json',
-        target_arn=TOPIC_ARN)
+    for arn in TOPIC_ARN_LIST:
+        res = sns_client.publish(
+            message=payload,
+            message_structure='json',
+            target_arn=arn)
+        pprint(res)
 
 
 def publish(message):
