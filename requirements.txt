@@ -2,10 +2,13 @@ appdirs==1.4.3
 APScheduler==2.1.2
 argparse==1.4.0
 boto==2.46.1
+click==6.7
 falcon==1.1.0
 futures==3.0.5
+ordereddict==1.1
 packaging==16.8
 pyparsing==2.2.0
+python-dotenv==0.5.1
 python-mimeparse==1.6.0
 setproctitle==1.1.10
 six==1.10.0

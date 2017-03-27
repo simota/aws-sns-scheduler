@@ -4,26 +4,14 @@ import boto.sns
 import json
 import concurrent.futures
 from pprint import pprint
+import settings
 
-
-ANDROID_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/GCM/daice-android'
-IOS_ARN = 'arn:aws:sns:ap-northeast-1:345493687167:app/APNS/daice-ios'
-TOPIC_ARN_LIST = [
-    'arn:aws:sns:ap-northeast-1:345493687167:All',
-    'arn:aws:sns:ap-northeast-1:345493687167:All2',
-    'arn:aws:sns:ap-northeast-1:345493687167:All3',
-    'arn:aws:sns:ap-northeast-1:345493687167:All4',
-    'arn:aws:sns:ap-northeast-1:345493687167:All5',
-    ]
 
 def create_client():
-    AWS_REGION = 'ap-northeast-1'
-    AWS_ACCESS_KEY = 'AKIAJMU2MW3SUZ6UFWIQ'
-    AWS_SECRET_ACCESS_KEY = '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'
     return boto.sns.connect_to_region(
-        AWS_REGION,
-        aws_access_key_id=AWS_ACCESS_KEY,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+        settings.AWS_REGION,
+        aws_access_key_id=settings.AWS_ACCESS_KEY,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
 
 
 sns_client = create_client()
@@ -65,15 +53,17 @@ def _get_application_endpoints(application_arn, endpoints, next_token=None):
 
 def _get_endpoints():
     endpoints = []
-    endpoints = endpoints + _get_application_endpoints(IOS_ARN, [])
-    endpoints = endpoints + _get_application_endpoints(ANDROID_ARN, [])
+    endpoints = endpoints + _get_application_endpoints(settings.IOS_ARN, [])
+    endpoints = endpoints + \
+        _get_application_endpoints(settings.ANDROID_ARN, [])
     return endpoints
 
 
 def publish_targets():
     targets = {}
-    targets['ios'] = len(_get_application_endpoints(IOS_ARN, []))
-    targets['android'] = len(_get_application_endpoints(ANDROID_ARN, []))
+    targets['ios'] = len(_get_application_endpoints(settings.IOS_ARN, []))
+    targets['android'] = len(
+        _get_application_endpoints(settings.ANDROID_ARN, []))
     return targets
 
 
@@ -88,9 +78,10 @@ def _publish(payload, endpoint):
         print sys.exc_info()
         return 'x'
 
+
 def publish_to_topic(message):
     payload = _create_payload(message)
-    for arn in TOPIC_ARN_LIST:
+    for arn in settings.TOPIC_ARN_LIST:
         res = sns_client.publish(
             message=payload,
             message_structure='json',
