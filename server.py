@@ -4,6 +4,7 @@ import falcon
 from wsgiref.simple_server import make_server
 import tasks
 import publisher
+import settings
 
 
 class NotficationsResource:
@@ -117,5 +118,5 @@ def run(scheduler, store):
     api.add_route('/notfications/{notfication_id}',
                   NotficationsResource(scheduler, store))
     api.add_route('/targets', TargetsResource())
-    httpd = make_server('0.0.0.0', 8080, api)
+    httpd = make_server(settings.SERVER_ADDRESS, settings.SERVER_PORT, api)
     httpd.serve_forever()
