@@ -48,7 +48,7 @@ def _get_application_endpoints(application_arn, endpoints, next_token=None):
     token = _extract_next_token(response)
     if token is None:
         return endpoints
-    return get_android_endpoints(application_arn, endpoints, next_token=token)
+    return _get_application_endpoints(application_arn, endpoints, next_token=token)
 
 
 def _get_endpoints():
