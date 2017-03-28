@@ -20,7 +20,7 @@ class NotficationsResource:
         else:
             notfications = self.store.all()
         data = map(lambda x: x.to_dict(), notfications)
-        resp.body = json.dumps({'notfications': data})
+        resp.body = json.dumps({'notfications': data}, ensure_ascii=False)
 
     def on_post(self, req, resp):
         error = self.validate_notfication(req.params)
@@ -36,7 +36,7 @@ class NotficationsResource:
                                schedule, args=[notfication.id])
 
         resp.status = falcon.HTTP_201
-        resp.body = json.dumps(notfication.to_dict())
+        resp.body = json.dumps(notfication.to_dict(), ensure_ascii=False)
 
     def on_put(self, req, resp, notfication_id):
         notfication = self.store.find(notfication_id)
@@ -61,7 +61,7 @@ class NotficationsResource:
                                schedule, args=[notfication_id])
 
         notfication = self.store.find(notfication_id)
-        resp.body = json.dumps(notfication.to_dict())
+        resp.body = json.dumps(notfication.to_dict(), ensure_ascii=False)
 
     def on_delete(self, req, resp, notfication_id):
         notfication = self.store.find(notfication_id)
